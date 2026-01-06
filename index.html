@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Continental Cup Predictor</title>
+    <title>ACSF Predictor 2026</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -10,6 +10,7 @@
             --card-bg: rgba(0, 40, 50, 0.95);
             --text-white: #e0faff;
             --line-color: rgba(0, 242, 255, 0.4);
+            --win-gold: #ffd700;
         }
 
         body {
@@ -23,6 +24,23 @@
             height: 100vh;
             overflow: hidden;
         }
+
+        /* Champion Display Header */
+        #champion-header {
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.4);
+            border-bottom: 1px solid var(--line-color);
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        #champion-header.visible { visibility: visible; }
+        .champ-label { font-size: 0.6em; color: var(--win-gold); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 5px; }
+        .champ-content { display: flex; align-items: center; gap: 15px; font-size: 1.5em; font-weight: bold; text-shadow: 0 0 10px var(--win-gold); }
+        .champ-content img { height: 40px; }
 
         .bracket-area {
             flex: 1;
@@ -108,6 +126,14 @@
     </style>
 </head>
 <body>
+
+    <div id="champion-header">
+        <div class="champ-label">ACSF Continental Cup Champion</div>
+        <div class="champ-content" id="champ-data">
+            <img id="champ-logo" src="">
+            <span id="champ-name"></span>
+        </div>
+    </div>
 
     <div class="bracket-area">
         <div class="bracket-outer" id="bracket-root">
@@ -226,15 +252,24 @@
     }
 
     function advance(winnerEl, matchId) {
+        const name = winnerEl.querySelector('span').innerText;
+
+        // Special Case: The Final
+        if (matchId === 'final') {
+            const header = document.getElementById('champion-header');
+            document.getElementById('champ-logo').src = LOGOS[name];
+            document.getElementById('champ-name').innerText = name;
+            header.classList.add('visible');
+            return;
+        }
+
         const targetId = BRACKET_MAP[matchId];
         if (!targetId) return;
 
         const target = document.getElementById(targetId);
-        // Special check: Only block overwriting if the target already has one of the "Auto Qual" teams specifically in Round 16
         const autoQuals = ["Leeds United", "Inter Miami", "Atlanta United", "Elche", "Aston Villa"];
         if (autoQuals.includes(target.querySelector('span').innerText) && targetId.includes('r16')) return;
 
-        const name = winnerEl.querySelector('span').innerText;
         target.classList.remove('empty');
         target.querySelector('img').src = LOGOS[name];
         target.querySelector('img').style.display = 'inline';
@@ -260,17 +295,14 @@
         connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
         connect('match-r1-L-3', 'r16-L-2-b', 'L');
         connect('match-r1-L-4', 'r16-L-3-b', 'L');
-
         connect('match-r1-R-0', 'r16-R-0-b', 'R');
         connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
         connect('match-r1-R-3', 'r16-R-2-b', 'R');
         connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
-
         connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
         connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
         connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
         connect('match-sf-L-0', 'match-final', 'L');
-
         connect('match-r16-R-0', 'match-qf-R-0', 'R'); connect('match-r16-R-1', 'match-qf-R-0', 'R');
         connect('match-r16-R-2', 'match-qf-R-1', 'R'); connect('match-r16-R-3', 'match-qf-R-1', 'R');
         connect('match-qf-R-0', 'match-sf-R-0', 'R'); connect('match-qf-R-1', 'match-sf-R-0', 'R');
