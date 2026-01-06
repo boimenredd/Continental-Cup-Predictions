@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Predictor 2026 - Fixed Visibility</title>
+    <title>ACSF Predictor 2026 - Exact Match</title>
     <style>
         :root {
             --bg-color: #00151a;
             --accent-cyan: #00f2ff;
-            --card-bg: rgba(0, 40, 50, 0.95);
+            --card-bg: rgba(0, 40, 50, 0.4);
             --text-white: #e0faff;
-            --line-color: rgba(0, 242, 255, 0.4);
+            --line-color: rgba(0, 242, 255, 0.3);
             --win-gold: #ffd700;
         }
 
@@ -17,120 +17,113 @@
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at center, #002b36 0%, #00151a 100%);
             color: var(--text-white);
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
-            /* Prevents the main body from hiding the left side */
-            display: block; 
             overflow-x: auto;
-            overflow-y: auto;
         }
 
         .bracket-scroll-wrapper {
-            min-width: fit-content;
-            padding: 40px;
+            padding: 50px;
+            min-width: 1600px;
+            display: flex;
+            justify-content: center;
         }
 
         .bracket-container {
             position: relative;
             display: flex;
             align-items: center;
-            justify-content: flex-start; /* Ensures left side is always visible */
-            gap: 0;
         }
 
         .bracket-side {
             display: flex;
-            gap: 40px;
+            gap: 60px;
         }
 
         .round {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            width: 200px;
+            width: 180px;
             z-index: 2;
-            min-height: 800px;
+            min-height: 850px;
         }
 
         .round-title {
             text-align: center;
-            font-size: 0.7em;
+            font-size: 0.65em;
             color: var(--accent-cyan);
-            padding: 5px;
+            padding: 4px;
             border: 1px solid var(--accent-cyan);
-            background: #000;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
+            background: transparent;
+            letter-spacing: 3px;
+            font-weight: bold;
+            margin-bottom: 20px;
         }
 
         .matchup {
             background: var(--card-bg);
-            border: 1px solid rgba(0, 242, 255, 0.2);
-            border-radius: 2px;
-            margin: 10px 0;
+            border: 1px solid rgba(0, 242, 255, 0.15);
+            margin: 12px 0;
             position: relative;
         }
 
         .team {
             display: flex;
             align-items: center;
-            height: 38px;
-            padding: 0 10px;
-            font-size: 0.8em;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            height: 42px;
+            padding: 0 12px;
+            font-size: 0.85em;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.2s;
         }
 
-        .team:hover { background: rgba(0, 242, 255, 0.1); }
-        .team:last-child { border-bottom: none; }
-        .team img { width: 22px; height: 22px; margin-right: 10px; object-fit: contain; }
+        .team:hover { background: rgba(0, 242, 255, 0.08); }
+        .team img { width: 20px; height: 20px; margin-right: 12px; object-fit: contain; }
         .team span { flex-grow: 1; overflow: hidden; white-space: nowrap; }
 
-        .score-box {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
+        /* The Seeded Teams Style */
+        .team.seeded { color: var(--accent-cyan); font-weight: bold; }
 
+        .score-box { display: flex; align-items: center; gap: 5px; }
         .score-input {
-            width: 28px;
-            background: #000;
-            border: 1px solid var(--line-color);
+            width: 25px;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--line-color);
             color: var(--accent-cyan);
             text-align: center;
-            font-weight: bold;
-            padding: 2px 0;
             font-size: 0.8em;
         }
 
         .pens-toggle {
             font-size: 0.6em;
-            background: #1a2c30;
-            border: 1px solid #44585d;
-            color: #44585d;
+            background: transparent;
+            border: 1px solid #334;
+            color: #556;
             cursor: pointer;
-            padding: 2px 4px;
-            border-radius: 2px;
+            padding: 1px 4px;
         }
 
-        .pens-toggle.active {
-            color: var(--win-gold);
-            border-color: var(--win-gold);
-        }
-
-        .team.winner { color: var(--win-gold); font-weight: bold; }
-        .team.empty { color: #44585d; font-style: italic; }
+        .pens-toggle.active { color: var(--win-gold); border-color: var(--win-gold); }
+        .team.winner { color: var(--win-gold); }
+        .team.empty { color: #44585d; font-style: italic; font-size: 0.75em; }
 
         .final-center {
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            width: 240px;
-            margin: 0 40px;
+            width: 220px;
+            margin: 0 60px;
             z-index: 2;
+        }
+
+        .final-center .round-title {
+            background: var(--accent-cyan);
+            color: #000;
+            width: 100%;
         }
 
         #connector-canvas {
@@ -156,7 +149,7 @@
             </div>
 
             <div class="final-center">
-                <div class="round-title" style="background:var(--accent-cyan); color:#000; width:100%;">GRAND FINAL</div>
+                <div class="round-title">FINAL</div>
                 <div class="matchup" id="match-final" style="width:100%;">
                     <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
                     <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
@@ -232,19 +225,19 @@
                 </div>`;
             });
         });
-        // Initial draw and setup resize listener
         window.addEventListener('load', drawLines);
         window.addEventListener('resize', drawLines);
-        setTimeout(drawLines, 100);
+        setTimeout(drawLines, 200);
     }
 
     function createTeamHTML(id, name) {
+        const isSeeded = name !== null;
         return `
-            <div class="team ${!name ? 'empty' : ''}" id="${id}" onclick="manualAdvance('${id}')">
+            <div class="team ${!name ? 'empty' : ''} ${isSeeded ? 'seeded' : ''}" id="${id}" onclick="manualAdvance('${id}')">
                 <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'block' : 'none'}">
                 <span>${name || 'TBD'}</span>
                 <div class="score-box" onclick="event.stopPropagation()">
-                    <input type="number" class="score-input" value="0" onchange="autoCheck('${id}')">
+                    <input type="number" class="score-input" placeholder="0" onchange="autoCheck('${id}')">
                     <button class="pens-toggle" onclick="togglePens(this, '${id}')">P</button>
                 </div>
             </div>`;
@@ -252,7 +245,6 @@
 
     function togglePens(btn, id) {
         btn.classList.toggle('active');
-        btn.innerText = btn.classList.contains('active') ? '(P)' : 'P';
         autoCheck(id);
     }
 
@@ -276,12 +268,21 @@
     }
 
     function advance(winnerEl, matchId) {
-        const targetId = PATHS[matchId.replace('match-','')];
+        const pathKey = matchId.replace('match-','');
+        const targetId = PATHS[pathKey];
         if (!targetId) return;
-        const name = winnerEl.querySelector('span').innerText;
+
         const target = document.getElementById(targetId);
+        
+        // FIX: Protection for seeded teams in Round 16
+        // If the target slot is already occupied by an initial seeded team (Leeds, Inter Miami, etc.), stop.
+        const isTargetSeeded = target.classList.contains('seeded');
+        if (isTargetSeeded) return;
+
+        const name = winnerEl.querySelector('span').innerText;
         winnerEl.parentElement.querySelectorAll('.team').forEach(t => t.classList.remove('winner'));
         winnerEl.classList.add('winner');
+        
         target.classList.remove('empty');
         target.querySelector('img').src = LOGOS[name];
         target.querySelector('img').style.display = 'block';
@@ -293,22 +294,23 @@
         svg.innerHTML = '';
         const root = document.getElementById('bracket-root').getBoundingClientRect();
 
-        const getPos = (id, side) => {
-            const el = document.getElementById(id).getBoundingClientRect();
-            return {
-                x: (side === 'L' ? el.right : el.left) - root.left,
-                y: el.top + el.height/2 - root.top
-            };
-        };
-
         Object.keys(PATHS).forEach(mKey => {
             const side = mKey.includes('-L-') || mKey.includes('sf-L') ? 'L' : 'R';
-            const start = getPos('match-' + mKey, side);
-            const targetId = PATHS[mKey];
-            const end = getPos(targetId, side === 'L' ? 'R' : 'L');
-            
-            const midX = start.x + (end.x - start.x) / 2;
-            svg.innerHTML += `<path d="M ${start.x} ${start.y} H ${midX} V ${end.y} H ${end.x}" stroke="var(--line-color)" fill="none" stroke-width="2"/>`;
+            const startEl = document.getElementById('match-' + mKey);
+            const targetEl = document.getElementById(PATHS[mKey]);
+            if (!startEl || !targetEl) return;
+
+            const start = startEl.getBoundingClientRect();
+            const end = targetEl.getBoundingClientRect();
+
+            let x1 = (side === 'L' ? start.right : start.left) - root.left;
+            let y1 = start.top + start.height/2 - root.top;
+            let x2 = (side === 'L' ? end.left : end.right) - root.left;
+            let y2 = end.top + end.height/2 - root.top;
+
+            // Step lines
+            const midX = x1 + (x2 - x1) / 2;
+            svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5"/>`;
         });
     }
 
