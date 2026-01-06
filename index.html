@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Predictor 2026 - Fixed Layout</title>
+    <title>ACSF Predictor 2026 - Fixed Visibility</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -19,22 +19,28 @@
             color: var(--text-white);
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            display: flex;
-            justify-content: center;
+            /* Prevents the main body from hiding the left side */
+            display: block; 
             overflow-x: auto;
+            overflow-y: auto;
+        }
+
+        .bracket-scroll-wrapper {
+            min-width: fit-content;
+            padding: 40px;
         }
 
         .bracket-container {
             position: relative;
             display: flex;
             align-items: center;
-            padding: 60px;
-            min-height: 900px;
+            justify-content: flex-start; /* Ensures left side is always visible */
+            gap: 0;
         }
 
         .bracket-side {
             display: flex;
-            gap: 50px;
+            gap: 40px;
         }
 
         .round {
@@ -43,6 +49,7 @@
             justify-content: space-around;
             width: 200px;
             z-index: 2;
+            min-height: 800px;
         }
 
         .round-title {
@@ -54,14 +61,14 @@
             background: #000;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .matchup {
             background: var(--card-bg);
             border: 1px solid rgba(0, 242, 255, 0.2);
             border-radius: 2px;
-            margin: 15px 0;
+            margin: 10px 0;
             position: relative;
         }
 
@@ -74,13 +81,12 @@
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             transition: background 0.2s;
-            position: relative;
         }
 
         .team:hover { background: rgba(0, 242, 255, 0.1); }
         .team:last-child { border-bottom: none; }
         .team img { width: 22px; height: 22px; margin-right: 10px; object-fit: contain; }
-        .team span { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .team span { flex-grow: 1; overflow: hidden; white-space: nowrap; }
 
         .score-box {
             display: flex;
@@ -123,13 +129,14 @@
             justify-content: center;
             align-items: center;
             width: 240px;
-            margin: 0 60px;
+            margin: 0 40px;
             z-index: 2;
         }
 
         #connector-canvas {
             position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0; left: 0; 
+            width: 100%; height: 100%;
             pointer-events: none;
             z-index: 1;
         }
@@ -137,29 +144,31 @@
 </head>
 <body>
 
-    <div class="bracket-container" id="bracket-root">
-        <svg id="connector-canvas"></svg>
+    <div class="bracket-scroll-wrapper">
+        <div class="bracket-container" id="bracket-root">
+            <svg id="connector-canvas"></svg>
 
-        <div class="bracket-side">
-            <div class="round"><div class="round-title">RD 1</div><div id="r1-L"></div></div>
-            <div class="round"><div class="round-title">RD 16</div><div id="r16-L"></div></div>
-            <div class="round"><div class="round-title">QF</div><div id="qf-L"></div></div>
-            <div class="round"><div class="round-title">SF</div><div id="sf-L"></div></div>
-        </div>
-
-        <div class="final-center">
-            <div class="round-title" style="background:var(--accent-cyan); color:#000; width:100%;">GRAND FINAL</div>
-            <div class="matchup" id="match-final" style="width:100%;">
-                <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
-                <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
+            <div class="bracket-side">
+                <div class="round"><div class="round-title">RD 1</div><div id="r1-L"></div></div>
+                <div class="round"><div class="round-title">RD 16</div><div id="r16-L"></div></div>
+                <div class="round"><div class="round-title">QF</div><div id="qf-L"></div></div>
+                <div class="round"><div class="round-title">SF</div><div id="sf-L"></div></div>
             </div>
-        </div>
 
-        <div class="bracket-side">
-            <div class="round"><div class="round-title">SF</div><div id="sf-R"></div></div>
-            <div class="round"><div class="round-title">QF</div><div id="qf-R"></div></div>
-            <div class="round"><div class="round-title">RD 16</div><div id="r16-R"></div></div>
-            <div class="round"><div class="round-title">RD 1</div><div id="r1-R"></div></div>
+            <div class="final-center">
+                <div class="round-title" style="background:var(--accent-cyan); color:#000; width:100%;">GRAND FINAL</div>
+                <div class="matchup" id="match-final" style="width:100%;">
+                    <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
+                    <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
+                </div>
+            </div>
+
+            <div class="bracket-side">
+                <div class="round"><div class="round-title">SF</div><div id="sf-R"></div></div>
+                <div class="round"><div class="round-title">QF</div><div id="qf-R"></div></div>
+                <div class="round"><div class="round-title">RD 16</div><div id="r16-R"></div></div>
+                <div class="round"><div class="round-title">RD 1</div><div id="r1-R"></div></div>
+            </div>
         </div>
     </div>
 
@@ -223,7 +232,10 @@
                 </div>`;
             });
         });
-        setTimeout(drawLines, 500);
+        // Initial draw and setup resize listener
+        window.addEventListener('load', drawLines);
+        window.addEventListener('resize', drawLines);
+        setTimeout(drawLines, 100);
     }
 
     function createTeamHTML(id, name) {
@@ -301,7 +313,6 @@
     }
 
     init();
-    window.onresize = drawLines;
 </script>
 </body>
 </html>
