@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Predictor 2026</title>
+    <title>ACSF Continental Cup Predictor</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -86,9 +86,9 @@
         .team img { width: 16px; height: 16px; margin-right: 6px; object-fit: contain; }
         .team span { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        .score-box { display: flex; align-items: center; gap: 2px; margin-left: 5px; }
+        .score-box { display: flex; align-items: center; margin-left: 5px; }
         .score-input {
-            width: 20px;
+            width: 24px;
             background: #000;
             border: 1px solid var(--line-color);
             color: var(--accent-cyan);
@@ -97,17 +97,6 @@
             padding: 1px 0;
         }
         
-        .pens-btn {
-            font-size: 0.6em;
-            background: #1a2c30;
-            border: 1px solid #44585d;
-            color: #44585d;
-            cursor: pointer;
-            padding: 1px 2px;
-        }
-        .pens-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); }
-
-        .team.pre-seeded { background: rgba(0, 242, 255, 0.15); color: var(--accent-cyan); font-weight: bold; }
         .team.empty { color: #44585d; font-style: italic; }
 
         #connector-canvas {
@@ -209,21 +198,14 @@
     }
 
     function teamNode(id, name) {
-        const isSeeded = name && id.includes('r16');
         return `
-            <div class="team ${!name ? 'empty' : ''} ${isSeeded ? 'pre-seeded' : ''}" id="${id}" onclick="manualAdvance('${id}')">
+            <div class="team ${!name ? 'empty' : ''}" id="${id}" onclick="manualAdvance('${id}')">
                 <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'inline' : 'none'}">
                 <span>${name || 'TBD'}</span>
                 <div class="score-box" onclick="event.stopPropagation()">
                     <input type="number" class="score-input" value="0" onchange="autoCheck('${id}')">
-                    <button class="pens-btn" onclick="togglePens(this, '${id}')">P</button>
                 </div>
             </div>`;
-    }
-
-    function togglePens(btn, id) {
-        btn.classList.toggle('active');
-        autoCheck(id);
     }
 
     function autoCheck(id) {
@@ -232,11 +214,9 @@
         const teamB = document.getElementById(base + '-b');
         const sA = parseInt(teamA.querySelector('.score-input').value) || 0;
         const sB = parseInt(teamB.querySelector('.score-input').value) || 0;
-        const pA = teamA.querySelector('.pens-btn').classList.contains('active');
-        const pB = teamB.querySelector('.pens-btn').classList.contains('active');
 
-        if (sA > sB || (sA === sB && pA)) advance(teamA, base);
-        else if (sB > sA || (sB === sA && pB)) advance(teamB, base);
+        if (sA > sB) advance(teamA, base);
+        else if (sB > sA) advance(teamB, base);
     }
 
     function manualAdvance(id) {
@@ -250,7 +230,9 @@
         if (!targetId) return;
 
         const target = document.getElementById(targetId);
-        if (target.classList.contains('pre-seeded')) return; // Don't overwrite Leeds, Inter Miami, etc.
+        // Special check: Only block overwriting if the target already has one of the "Auto Qual" teams specifically in Round 16
+        const autoQuals = ["Leeds United", "Inter Miami", "Atlanta United", "Elche", "Aston Villa"];
+        if (autoQuals.includes(target.querySelector('span').innerText) && targetId.includes('r16')) return;
 
         const name = winnerEl.querySelector('span').innerText;
         target.classList.remove('empty');
@@ -274,7 +256,6 @@
             svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5" />`;
         };
 
-        // RD1 Connectors
         connect('match-r1-L-0', 'r16-L-0-b', 'L');
         connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
         connect('match-r1-L-3', 'r16-L-2-b', 'L');
@@ -285,7 +266,6 @@
         connect('match-r1-R-3', 'r16-R-2-b', 'R');
         connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
 
-        // Core Bracket Connectors
         connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
         connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
         connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
