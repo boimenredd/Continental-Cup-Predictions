@@ -7,9 +7,9 @@
         :root {
             --bg-color: #00151a;
             --accent-cyan: #00f2ff;
-            --card-bg: rgba(0, 40, 50, 0.4);
+            --card-bg: rgba(0, 40, 50, 0.95);
             --text-white: #e0faff;
-            --line-color: rgba(0, 242, 255, 0.3);
+            --line-color: rgba(0, 242, 255, 0.4);
             --win-gold: #ffd700;
         }
 
@@ -17,37 +17,42 @@
             background-color: var(--bg-color);
             background-image: radial-gradient(circle at center, #002b36 0%, #00151a 100%);
             color: var(--text-white);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            overflow-x: auto;
-        }
-
-        .bracket-scroll-wrapper {
-            padding: 50px;
-            min-width: 1600px;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
         }
 
-        .bracket-container {
+        .bracket-area {
+            flex: 1;
             position: relative;
+            padding: 10px;
+            overflow: auto;
             display: flex;
+            flex-direction: column;
             align-items: center;
         }
 
-        .bracket-side {
+        .bracket-outer {
+            position: relative;
             display: flex;
-            gap: 60px;
+            justify-content: center;
+            gap: 40px;
+            min-width: 1600px;
+            height: 780px;
         }
 
         .round {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
-            width: 180px;
             z-index: 2;
-            min-height: 850px;
         }
+
+        .round-r1, .round-r16 { width: 170px; }
+        .round-mini { width: 120px; }
 
         .round-title {
             text-align: center;
@@ -55,81 +60,64 @@
             color: var(--accent-cyan);
             padding: 4px;
             border: 1px solid var(--accent-cyan);
-            background: transparent;
-            letter-spacing: 3px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            background: #000;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .matchup {
             background: var(--card-bg);
-            border: 1px solid rgba(0, 242, 255, 0.15);
-            margin: 12px 0;
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 2px;
             position: relative;
         }
 
         .team {
             display: flex;
             align-items: center;
-            height: 42px;
-            padding: 0 12px;
-            font-size: 0.85em;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            height: 28px;
+            padding: 0 8px;
+            font-size: 0.7em;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             transition: all 0.2s;
+            white-space: nowrap;
         }
 
-        .team:hover { background: rgba(0, 242, 255, 0.08); }
-        .team img { width: 20px; height: 20px; margin-right: 12px; object-fit: contain; }
-        .team span { flex-grow: 1; overflow: hidden; white-space: nowrap; }
+        .team:hover { background: rgba(0, 242, 255, 0.1); }
+        .team:last-child { border-bottom: none; }
+        .team img { width: 16px; height: 16px; margin-right: 6px; object-fit: contain; }
+        .team span { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; }
+        
+        /* Pre-seeded/Auto-qualifier style */
+        .team.pre-seeded { background: rgba(0, 242, 255, 0.15); color: var(--accent-cyan); font-weight: bold; }
+        .team.empty { color: #44585d; font-style: italic; }
+        .team.winner { color: var(--win-gold); font-weight: bold; }
 
-        /* The Seeded Teams Style */
-        .team.seeded { color: var(--accent-cyan); font-weight: bold; }
-
-        .score-box { display: flex; align-items: center; gap: 5px; }
+        /* Score Inputs */
+        .score-box { display: flex; align-items: center; gap: 3px; margin-left: 5px; }
         .score-input {
-            width: 25px;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid var(--line-color);
+            width: 22px;
+            background: #000;
+            border: 1px solid var(--line-color);
             color: var(--accent-cyan);
             text-align: center;
             font-size: 0.8em;
+            padding: 1px 0;
         }
-
-        .pens-toggle {
+        .pens-btn {
             font-size: 0.6em;
-            background: transparent;
-            border: 1px solid #334;
-            color: #556;
+            background: #1a2c30;
+            border: 1px solid #44585d;
+            color: #44585d;
             cursor: pointer;
-            padding: 1px 4px;
+            padding: 1px 3px;
         }
-
-        .pens-toggle.active { color: var(--win-gold); border-color: var(--win-gold); }
-        .team.winner { color: var(--win-gold); }
-        .team.empty { color: #44585d; font-style: italic; font-size: 0.75em; }
-
-        .final-center {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 220px;
-            margin: 0 60px;
-            z-index: 2;
-        }
-
-        .final-center .round-title {
-            background: var(--accent-cyan);
-            color: #000;
-            width: 100%;
-        }
+        .pens-btn.active { color: var(--win-gold); border-color: var(--win-gold); }
 
         #connector-canvas {
             position: absolute;
-            top: 0; left: 0; 
-            width: 100%; height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             pointer-events: none;
             z-index: 1;
         }
@@ -137,31 +125,27 @@
 </head>
 <body>
 
-    <div class="bracket-scroll-wrapper">
-        <div class="bracket-container" id="bracket-root">
+    <div class="bracket-area">
+        <div class="bracket-outer" id="bracket-root">
             <svg id="connector-canvas"></svg>
 
-            <div class="bracket-side">
-                <div class="round"><div class="round-title">RD 1</div><div id="r1-L"></div></div>
-                <div class="round"><div class="round-title">RD 16</div><div id="r16-L"></div></div>
-                <div class="round"><div class="round-title">QF</div><div id="qf-L"></div></div>
-                <div class="round"><div class="round-title">SF</div><div id="sf-L"></div></div>
-            </div>
+            <div class="round round-r1"><div class="round-title">RD 1</div><div id="r1-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r16"><div class="round-title">RD 16</div><div id="r16-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">QF</div><div id="qf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">SF</div><div id="sf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
 
-            <div class="final-center">
-                <div class="round-title">FINAL</div>
-                <div class="matchup" id="match-final" style="width:100%;">
+            <div class="round" style="justify-content: center; width: 140px;">
+                <div class="round-title" style="background:var(--accent-cyan); color:#000;">FINAL</div>
+                <div class="matchup" id="match-final">
                     <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
                     <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
                 </div>
             </div>
 
-            <div class="bracket-side">
-                <div class="round"><div class="round-title">SF</div><div id="sf-R"></div></div>
-                <div class="round"><div class="round-title">QF</div><div id="qf-R"></div></div>
-                <div class="round"><div class="round-title">RD 16</div><div id="r16-R"></div></div>
-                <div class="round"><div class="round-title">RD 1</div><div id="r1-R"></div></div>
-            </div>
+            <div class="round round-mini"><div class="round-title">SF</div><div id="sf-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">QF</div><div id="qf-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r16"><div class="round-title">RD 16</div><div id="r16-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r1"><div class="round-title">RD 1</div><div id="r1-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
         </div>
     </div>
 
@@ -199,19 +183,19 @@
     const INITIAL_DATA = {
         'r1-L': [["San Diego", "Celta Vigo"], ["Seattle", "Valencia"], ["LAFC", "Leicester"], ["Salt Lake", "West Ham"], ["Minnesota", "Real Betis"]],
         'r1-R': [["LA Galaxy", "Bournemouth"], ["Columbus", "Levante"], ["Colorado", "Brentford"], ["Orlando", "New England"], ["Charlotte", "Osasuna"], ["San Jose", "Chicago"]],
-        'r16-L': [["Leeds United", null], [null, null], [null, "Atlanta United"], [null, "Aston Villa"]],
+        'r16-L': [["Leeds United", null], [null, null], ["Atlanta United", null], [null, "Aston Villa"]],
         'r16-R': [["Inter Miami", null], [null, null], ["Elche", null], [null, null]],
         'qf-L': [[null,null],[null,null]], 'qf-R': [[null,null],[null,null]],
         'sf-L': [[null,null]], 'sf-R': [[null,null]]
     };
 
     const PATHS = {
-        'r1-L-0': 'r16-L-0-b', 'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b', 'r1-L-3': 'r16-L-2-b', 'r1-L-4': 'r16-L-3-b',
-        'r1-R-0': 'r16-R-0-b', 'r1-R-1': 'r16-R-1-a', 'r1-R-2': 'r16-R-1-b', 'r1-R-3': 'r16-R-2-b', 'r1-R-4': 'r16-R-3-a', 'r1-R-5': 'r16-R-3-b',
-        'r16-L-0': 'qf-L-0-a', 'r16-L-1': 'qf-L-0-b', 'r16-L-2': 'qf-L-1-a', 'r16-L-3': 'qf-L-1-b',
-        'r16-R-0': 'qf-R-0-a', 'r16-R-1': 'qf-R-0-b', 'r16-R-2': 'qf-R-1-a', 'r16-R-3': 'qf-R-1-b',
-        'qf-L-0': 'sf-L-0-a', 'qf-L-1': 'sf-L-0-b', 'qf-R-0': 'sf-R-0-a', 'qf-R-1': 'sf-R-0-b',
-        'sf-L-0': 'final-a', 'sf-R-0': 'final-b'
+        'match-r1-L-0': 'r16-L-0-b', 'match-r1-L-1': 'r16-L-1-a', 'match-r1-L-2': 'r16-L-1-b', 'match-r1-L-3': 'r16-L-2-b', 'match-r1-L-4': 'r16-L-3-b',
+        'match-r1-R-0': 'r16-R-0-b', 'match-r1-R-1': 'r16-R-1-a', 'match-r1-R-2': 'r16-R-1-b', 'match-r1-R-3': 'r16-R-2-b', 'match-r1-R-4': 'r16-R-3-a', 'match-r1-R-5': 'r16-R-3-b',
+        'match-r16-L-0': 'qf-L-0-a', 'match-r16-L-1': 'qf-L-0-b', 'match-r16-L-2': 'qf-L-1-a', 'match-r16-L-3': 'qf-L-1-b',
+        'match-r16-R-0': 'qf-R-0-a', 'match-r16-R-1': 'qf-R-0-b', 'match-r16-R-2': 'qf-R-1-a', 'match-r16-R-3': 'qf-R-1-b',
+        'match-qf-L-0': 'sf-L-0-a', 'match-qf-L-1': 'sf-L-0-b', 'match-qf-R-0': 'sf-R-0-a', 'match-qf-R-1': 'sf-R-0-b',
+        'match-sf-L-0': 'final-a', 'match-sf-R-0': 'final-b'
     };
 
     function init() {
@@ -227,18 +211,18 @@
         });
         window.addEventListener('load', drawLines);
         window.addEventListener('resize', drawLines);
-        setTimeout(drawLines, 200);
+        setTimeout(drawLines, 500);
     }
 
     function createTeamHTML(id, name) {
-        const isSeeded = name !== null;
+        const isSeeded = name !== null && id.includes('r16');
         return `
-            <div class="team ${!name ? 'empty' : ''} ${isSeeded ? 'seeded' : ''}" id="${id}" onclick="manualAdvance('${id}')">
+            <div class="team ${!name ? 'empty' : ''} ${isSeeded ? 'pre-seeded' : ''}" id="${id}" onclick="manualAdvance('${id}')">
                 <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'block' : 'none'}">
                 <span>${name || 'TBD'}</span>
                 <div class="score-box" onclick="event.stopPropagation()">
-                    <input type="number" class="score-input" placeholder="0" onchange="autoCheck('${id}')">
-                    <button class="pens-toggle" onclick="togglePens(this, '${id}')">P</button>
+                    <input type="number" class="score-input" value="0" onchange="autoCheck('${id}')">
+                    <button class="pens-btn" onclick="togglePens(this, '${id}')">P</button>
                 </div>
             </div>`;
     }
@@ -254,8 +238,8 @@
         const teamB = document.getElementById(mId + '-b');
         const sA = parseInt(teamA.querySelector('.score-input').value) || 0;
         const sB = parseInt(teamB.querySelector('.score-input').value) || 0;
-        const pA = teamA.querySelector('.pens-toggle').classList.contains('active');
-        const pB = teamB.querySelector('.pens-toggle').classList.contains('active');
+        const pA = teamA.querySelector('.pens-btn').classList.contains('active');
+        const pB = teamB.querySelector('.pens-btn').classList.contains('active');
 
         if (sA > sB || (sA === sB && pA)) advance(teamA, mId);
         else if (sB > sA || (sB === sA && pB)) advance(teamB, mId);
@@ -268,16 +252,13 @@
     }
 
     function advance(winnerEl, matchId) {
-        const pathKey = matchId.replace('match-','');
-        const targetId = PATHS[pathKey];
+        const targetId = PATHS[matchId];
         if (!targetId) return;
 
         const target = document.getElementById(targetId);
         
-        // FIX: Protection for seeded teams in Round 16
-        // If the target slot is already occupied by an initial seeded team (Leeds, Inter Miami, etc.), stop.
-        const isTargetSeeded = target.classList.contains('seeded');
-        if (isTargetSeeded) return;
+        // PROTECTION: Do not replace auto-qualifiers in R16
+        if (target.classList.contains('pre-seeded')) return;
 
         const name = winnerEl.querySelector('span').innerText;
         winnerEl.parentElement.querySelectorAll('.team').forEach(t => t.classList.remove('winner'));
@@ -294,24 +275,38 @@
         svg.innerHTML = '';
         const root = document.getElementById('bracket-root').getBoundingClientRect();
 
-        Object.keys(PATHS).forEach(mKey => {
-            const side = mKey.includes('-L-') || mKey.includes('sf-L') ? 'L' : 'R';
-            const startEl = document.getElementById('match-' + mKey);
-            const targetEl = document.getElementById(PATHS[mKey]);
-            if (!startEl || !targetEl) return;
+        const connect = (id1, id2, dir) => {
+            const b1 = document.getElementById(id1).getBoundingClientRect();
+            const b2 = document.getElementById(id2).getBoundingClientRect();
+            const x1 = (dir === 'L') ? b1.right - root.left : b1.left - root.left;
+            const y1 = b1.top + b1.height/2 - root.top;
+            const x2 = (dir === 'L') ? b2.left - root.left : b2.right - root.left;
+            const y2 = b2.top + b2.height/2 - root.top;
+            const midX = x1 + (x2 - x1)/2;
+            svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5" />`;
+        };
 
-            const start = startEl.getBoundingClientRect();
-            const end = targetEl.getBoundingClientRect();
+        // RD1 -> RD16 Connections
+        connect('match-r1-L-0', 'r16-L-0-b', 'L');
+        connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
+        connect('match-r1-L-3', 'r16-L-2-b', 'L');
+        connect('match-r1-L-4', 'r16-L-3-b', 'L');
 
-            let x1 = (side === 'L' ? start.right : start.left) - root.left;
-            let y1 = start.top + start.height/2 - root.top;
-            let x2 = (side === 'L' ? end.left : end.right) - root.left;
-            let y2 = end.top + end.height/2 - root.top;
+        connect('match-r1-R-0', 'r16-R-0-b', 'R');
+        connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
+        connect('match-r1-R-3', 'r16-R-2-b', 'R');
+        connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
 
-            // Step lines
-            const midX = x1 + (x2 - x1) / 2;
-            svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5"/>`;
-        });
+        // Core Tournament Path
+        connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
+        connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
+        connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
+        connect('match-sf-L-0', 'match-final', 'L');
+
+        connect('match-r16-R-0', 'match-qf-R-0', 'R'); connect('match-r16-R-1', 'match-qf-R-0', 'R');
+        connect('match-r16-R-2', 'match-qf-R-1', 'R'); connect('match-r16-R-3', 'match-qf-R-1', 'R');
+        connect('match-qf-R-0', 'match-sf-R-0', 'R'); connect('match-qf-R-1', 'match-sf-R-0', 'R');
+        connect('match-sf-R-0', 'match-final', 'R');
     }
 
     init();
