@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Continental Cup Predictor</title>
+    <title>ACSF Predictor 2026</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -96,10 +96,18 @@
             font-size: 0.75em;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
-            transition: background 0.2s;
+            transition: all 0.3s;
         }
         .team:hover { background: rgba(0, 242, 255, 0.15); }
         .team:last-child { border-bottom: none; }
+        
+        /* WINNER HIGHLIGHT */
+        .team.winner { 
+            background: rgba(0, 242, 255, 0.1);
+            color: var(--accent-cyan);
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 242, 255, 0.6);
+        }
         
         .team img { width: 18px; height: 18px; margin-right: 8px; object-fit: contain; }
         .team span { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -242,19 +250,27 @@
         const sA = parseInt(teamA.querySelector('.score-input').value) || 0;
         const sB = parseInt(teamB.querySelector('.score-input').value) || 0;
 
-        if (sA > sB) advance(teamA, base);
-        else if (sB > sA) advance(teamB, base);
+        if (sA > sB) advance(teamA, teamB, base);
+        else if (sB > sA) advance(teamB, teamA, base);
     }
 
     function manualAdvance(id) {
         const el = document.getElementById(id);
+        const base = id.slice(0, -2);
+        const otherId = id.endsWith('-a') ? base + '-b' : base + '-a';
+        const otherEl = document.getElementById(otherId);
+        
         if (el.classList.contains('empty') && el.querySelector('span').innerText === 'TBD') return;
-        advance(el, id.slice(0, -2));
+        advance(el, otherEl, base);
     }
 
-    function advance(winnerEl, matchId) {
+    function advance(winnerEl, loserEl, matchId) {
         const name = winnerEl.querySelector('span').innerText;
         if (name === 'TBD') return;
+
+        // Visual Highlighting
+        winnerEl.classList.add('winner');
+        if (loserEl) loserEl.classList.remove('winner');
 
         // Ultimate Final Champion Selection
         if (matchId === 'final' || matchId === 'match-final') {
@@ -270,7 +286,7 @@
 
         const target = document.getElementById(targetId);
         
-        // Safety for Round 16 pre-filled slots
+        // Prevent overwriting static seeded teams
         const autoQuals = ["Leeds United", "Inter Miami", "Atlanta United", "Elche", "Aston Villa"];
         if (targetId.includes('r16') && autoQuals.includes(target.querySelector('span').innerText)) return;
 
@@ -301,17 +317,14 @@
         connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
         connect('match-r1-L-3', 'r16-L-2-b', 'L');
         connect('match-r1-L-4', 'r16-L-3-a', 'L');
-
         connect('match-r1-R-0', 'r16-R-0-b', 'R');
         connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
         connect('match-r1-R-3', 'r16-R-2-b', 'R');
         connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
-
         connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
         connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
         connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
         connect('match-sf-L-0', 'match-final', 'L');
-
         connect('match-r16-R-0', 'match-qf-R-0', 'R'); connect('match-r16-R-1', 'match-qf-R-0', 'R');
         connect('match-r16-R-2', 'match-qf-R-1', 'R'); connect('match-r16-R-3', 'match-qf-R-1', 'R');
         connect('match-qf-R-0', 'match-sf-R-0', 'R'); connect('match-qf-R-1', 'match-sf-R-0', 'R');
