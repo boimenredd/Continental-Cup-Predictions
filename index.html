@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Predictor 2026 - Exact Match</title>
+    <title>ACSF Predictor 2026</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -10,7 +10,6 @@
             --card-bg: rgba(0, 40, 50, 0.95);
             --text-white: #e0faff;
             --line-color: rgba(0, 242, 255, 0.4);
-            --win-gold: #ffd700;
         }
 
         body {
@@ -69,7 +68,6 @@
             background: var(--card-bg);
             border: 1px solid rgba(0, 242, 255, 0.2);
             border-radius: 2px;
-            position: relative;
         }
 
         .team {
@@ -80,24 +78,17 @@
             font-size: 0.7em;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
+            transition: background 0.2s;
         }
-
         .team:hover { background: rgba(0, 242, 255, 0.1); }
         .team:last-child { border-bottom: none; }
-        .team img { width: 16px; height: 16px; margin-right: 6px; object-fit: contain; }
-        .team span { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; }
         
-        /* Pre-seeded/Auto-qualifier style */
-        .team.pre-seeded { background: rgba(0, 242, 255, 0.15); color: var(--accent-cyan); font-weight: bold; }
-        .team.empty { color: #44585d; font-style: italic; }
-        .team.winner { color: var(--win-gold); font-weight: bold; }
+        .team img { width: 16px; height: 16px; margin-right: 6px; object-fit: contain; }
+        .team span { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Score Inputs */
-        .score-box { display: flex; align-items: center; gap: 3px; margin-left: 5px; }
+        .score-box { display: flex; align-items: center; gap: 2px; margin-left: 5px; }
         .score-input {
-            width: 22px;
+            width: 20px;
             background: #000;
             border: 1px solid var(--line-color);
             color: var(--accent-cyan);
@@ -105,15 +96,19 @@
             font-size: 0.8em;
             padding: 1px 0;
         }
+        
         .pens-btn {
             font-size: 0.6em;
             background: #1a2c30;
             border: 1px solid #44585d;
             color: #44585d;
             cursor: pointer;
-            padding: 1px 3px;
+            padding: 1px 2px;
         }
-        .pens-btn.active { color: var(--win-gold); border-color: var(--win-gold); }
+        .pens-btn.active { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+
+        .team.pre-seeded { background: rgba(0, 242, 255, 0.15); color: var(--accent-cyan); font-weight: bold; }
+        .team.empty { color: #44585d; font-style: italic; }
 
         #connector-canvas {
             position: absolute;
@@ -180,45 +175,44 @@
         "Celta Vigo": "https://ssl.gstatic.com/onebox/media/sports/logos/wpdhixHP_sloegfP0UlwAw_48x48.png"
     };
 
-    const INITIAL_DATA = {
-        'r1-L': [["San Diego", "Celta Vigo"], ["Seattle", "Valencia"], ["LAFC", "Leicester"], ["Salt Lake", "West Ham"], ["Minnesota", "Real Betis"]],
-        'r1-R': [["LA Galaxy", "Bournemouth"], ["Columbus", "Levante"], ["Colorado", "Brentford"], ["Orlando", "New England"], ["Charlotte", "Osasuna"], ["San Jose", "Chicago"]],
-        'r16-L': [["Leeds United", null], [null, null], ["Atlanta United", null], [null, "Aston Villa"]],
-        'r16-R': [["Inter Miami", null], [null, null], ["Elche", null], [null, null]],
-        'qf-L': [[null,null],[null,null]], 'qf-R': [[null,null],[null,null]],
-        'sf-L': [[null,null]], 'sf-R': [[null,null]]
-    };
-
-    const PATHS = {
-        'match-r1-L-0': 'r16-L-0-b', 'match-r1-L-1': 'r16-L-1-a', 'match-r1-L-2': 'r16-L-1-b', 'match-r1-L-3': 'r16-L-2-b', 'match-r1-L-4': 'r16-L-3-b',
-        'match-r1-R-0': 'r16-R-0-b', 'match-r1-R-1': 'r16-R-1-a', 'match-r1-R-2': 'r16-R-1-b', 'match-r1-R-3': 'r16-R-2-b', 'match-r1-R-4': 'r16-R-3-a', 'match-r1-R-5': 'r16-R-3-b',
-        'match-r16-L-0': 'qf-L-0-a', 'match-r16-L-1': 'qf-L-0-b', 'match-r16-L-2': 'qf-L-1-a', 'match-r16-L-3': 'qf-L-1-b',
-        'match-r16-R-0': 'qf-R-0-a', 'match-r16-R-1': 'qf-R-0-b', 'match-r16-R-2': 'qf-R-1-a', 'match-r16-R-3': 'qf-R-1-b',
-        'match-qf-L-0': 'sf-L-0-a', 'match-qf-L-1': 'sf-L-0-b', 'match-qf-R-0': 'sf-R-0-a', 'match-qf-R-1': 'sf-R-0-b',
-        'match-sf-L-0': 'final-a', 'match-sf-R-0': 'final-b'
+    const BRACKET_MAP = {
+        'r1-L-0': 'r16-L-0-b', 'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b', 'r1-L-3': 'r16-L-2-b', 'r1-L-4': 'r16-L-3-b',
+        'r1-R-0': 'r16-R-0-b', 'r1-R-1': 'r16-R-1-a', 'r1-R-2': 'r16-R-1-b', 'r1-R-3': 'r16-R-2-b', 'r1-R-4': 'r16-R-3-a', 'r1-R-5': 'r16-R-3-b',
+        'r16-L-0': 'qf-L-0-a', 'r16-L-1': 'qf-L-0-b', 'r16-L-2': 'qf-L-1-a', 'r16-L-3': 'qf-L-1-b',
+        'r16-R-0': 'qf-R-0-a', 'r16-R-1': 'qf-R-0-b', 'r16-R-2': 'qf-R-1-a', 'r16-R-3': 'qf-R-1-b',
+        'qf-L-0': 'sf-L-0-a', 'qf-L-1': 'sf-L-0-b', 'qf-R-0': 'sf-R-0-a', 'qf-R-1': 'sf-R-0-b',
+        'sf-L-0': 'final-a', 'sf-R-0': 'final-b'
     };
 
     function init() {
-        Object.keys(INITIAL_DATA).forEach(roundId => {
-            const container = document.getElementById(roundId);
-            INITIAL_DATA[roundId].forEach((m, i) => {
+        const build = (id, teams) => {
+            const container = document.getElementById(id);
+            teams.forEach((pair, i) => {
+                const mId = `${id}-${i}`;
                 container.innerHTML += `
-                <div class="matchup" id="match-${roundId}-${i}">
-                    ${createTeamHTML(`${roundId}-${i}-a`, m[0])}
-                    ${createTeamHTML(`${roundId}-${i}-b`, m[1])}
+                <div class="matchup" id="match-${mId}">
+                    ${teamNode(`${mId}-a`, pair[0])}
+                    ${teamNode(`${mId}-b`, pair[1])}
                 </div>`;
             });
-        });
-        window.addEventListener('load', drawLines);
-        window.addEventListener('resize', drawLines);
+        };
+
+        build('r1-L', [["San Diego", "Celta Vigo"], ["Seattle", "Valencia"], ["LAFC", "Leicester"], ["Salt Lake", "West Ham"], ["Minnesota", "Real Betis"]]);
+        build('r1-R', [["LA Galaxy", "Bournemouth"], ["Columbus", "Levante"], ["Colorado", "Brentford"], ["Orlando", "New England"], ["Charlotte", "Osasuna"], ["San Jose", "Chicago"]]);
+        build('r16-L', [["Leeds United", null], [null, null], ["Atlanta United", null], [null, "Aston Villa"]]);
+        build('r16-R', [["Inter Miami", null], [null, null], ["Elche", null], [null, null]]);
+        build('qf-L', [[null,null],[null,null]]); build('qf-R', [[null,null],[null,null]]);
+        build('sf-L', [[null,null]]); build('sf-R', [[null,null]]);
+
         setTimeout(drawLines, 500);
+        window.onresize = drawLines;
     }
 
-    function createTeamHTML(id, name) {
-        const isSeeded = name !== null && id.includes('r16');
+    function teamNode(id, name) {
+        const isSeeded = name && id.includes('r16');
         return `
             <div class="team ${!name ? 'empty' : ''} ${isSeeded ? 'pre-seeded' : ''}" id="${id}" onclick="manualAdvance('${id}')">
-                <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'block' : 'none'}">
+                <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'inline' : 'none'}">
                 <span>${name || 'TBD'}</span>
                 <div class="score-box" onclick="event.stopPropagation()">
                     <input type="number" class="score-input" value="0" onchange="autoCheck('${id}')">
@@ -233,40 +227,35 @@
     }
 
     function autoCheck(id) {
-        const mId = id.substring(0, id.lastIndexOf('-'));
-        const teamA = document.getElementById(mId + '-a');
-        const teamB = document.getElementById(mId + '-b');
+        const base = id.slice(0, -2);
+        const teamA = document.getElementById(base + '-a');
+        const teamB = document.getElementById(base + '-b');
         const sA = parseInt(teamA.querySelector('.score-input').value) || 0;
         const sB = parseInt(teamB.querySelector('.score-input').value) || 0;
         const pA = teamA.querySelector('.pens-btn').classList.contains('active');
         const pB = teamB.querySelector('.pens-btn').classList.contains('active');
 
-        if (sA > sB || (sA === sB && pA)) advance(teamA, mId);
-        else if (sB > sA || (sB === sA && pB)) advance(teamB, mId);
+        if (sA > sB || (sA === sB && pA)) advance(teamA, base);
+        else if (sB > sA || (sB === sA && pB)) advance(teamB, base);
     }
 
     function manualAdvance(id) {
         const el = document.getElementById(id);
         if (el.classList.contains('empty')) return;
-        advance(el, id.substring(0, id.lastIndexOf('-')));
+        advance(el, id.slice(0, -2));
     }
 
     function advance(winnerEl, matchId) {
-        const targetId = PATHS[matchId];
+        const targetId = BRACKET_MAP[matchId];
         if (!targetId) return;
 
         const target = document.getElementById(targetId);
-        
-        // PROTECTION: Do not replace auto-qualifiers in R16
-        if (target.classList.contains('pre-seeded')) return;
+        if (target.classList.contains('pre-seeded')) return; // Don't overwrite Leeds, Inter Miami, etc.
 
         const name = winnerEl.querySelector('span').innerText;
-        winnerEl.parentElement.querySelectorAll('.team').forEach(t => t.classList.remove('winner'));
-        winnerEl.classList.add('winner');
-        
         target.classList.remove('empty');
         target.querySelector('img').src = LOGOS[name];
-        target.querySelector('img').style.display = 'block';
+        target.querySelector('img').style.display = 'inline';
         target.querySelector('span').innerText = name;
     }
 
@@ -274,7 +263,6 @@
         const svg = document.getElementById('connector-canvas');
         svg.innerHTML = '';
         const root = document.getElementById('bracket-root').getBoundingClientRect();
-
         const connect = (id1, id2, dir) => {
             const b1 = document.getElementById(id1).getBoundingClientRect();
             const b2 = document.getElementById(id2).getBoundingClientRect();
@@ -286,7 +274,7 @@
             svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5" />`;
         };
 
-        // RD1 -> RD16 Connections
+        // RD1 Connectors
         connect('match-r1-L-0', 'r16-L-0-b', 'L');
         connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
         connect('match-r1-L-3', 'r16-L-2-b', 'L');
@@ -297,7 +285,7 @@
         connect('match-r1-R-3', 'r16-R-2-b', 'R');
         connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
 
-        // Core Tournament Path
+        // Core Bracket Connectors
         connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
         connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
         connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
