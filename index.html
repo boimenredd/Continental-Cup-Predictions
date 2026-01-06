@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ACSF Continental Cup 2026 - Predictor</title>
+    <style>
+        :root {
+            --bg-color: #00151a;
+            --accent-cyan: #00f2ff;
+            --card-bg: rgba(0, 40, 50, 0.95);
+            --text-white: #e0faff;
+            --line-color: rgba(0, 242, 255, 0.4);
+            --win-gold: #ffd700;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: radial-gradient(circle at center, #002b36 0%, #00151a 100%);
+            color: var(--text-white);
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .bracket-area {
+            flex: 1;
+            position: relative;
+            padding: 10px;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bracket-outer {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            min-width: 1600px;
+            height: 850px;
+        }
+
+        .round {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            z-index: 2;
+        }
+
+        .round-r1, .round-r16 { width: 220px; }
+        .round-mini { width: 180px; }
+
+        .round-title {
+            text-align: center;
+            font-size: 0.65em;
+            color: var(--accent-cyan);
+            padding: 4px;
+            border: 1px solid var(--accent-cyan);
+            background: #000;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .matchup {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 2px;
+            margin: 5px 0;
+            position: relative;
+        }
+
+        .team {
+            display: flex;
+            align-items: center;
+            height: 32px;
+            padding: 0 8px;
+            font-size: 0.75em;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .team:hover:not(.empty) { background: rgba(0, 242, 255, 0.1); }
+        .team:last-child { border-bottom: none; }
+        .team img { width: 18px; height: 18px; margin-right: 8px; object-fit: contain; }
+        
+        /* Prediction styling */
+        .score-input {
+            width: 25px;
+            background: rgba(0,0,0,0.5);
+            border: 1px solid var(--line-color);
+            color: var(--accent-cyan);
+            text-align: center;
+            font-size: 0.8em;
+            margin-left: auto;
+            border-radius: 2px;
+        }
+
+        .pens-btn {
+            font-size: 0.6em;
+            padding: 1px 3px;
+            margin-left: 4px;
+            background: transparent;
+            border: 1px solid #44585d;
+            color: #44585d;
+            cursor: pointer;
+        }
+        .pens-btn.active {
+            border-color: var(--win-gold);
+            color: var(--win-gold);
+        }
+
+        .team.winner { color: var(--win-gold); font-weight: bold; }
+        .team.pre-seeded { color: var(--accent-cyan); font-weight: bold; }
+        .team.empty { color: #44585d; font-style: italic; cursor: default; }
+
+        #connector-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .bottom-panel {
+            background: rgba(0, 0, 0, 0.95);
+            border-top: 2px solid var(--accent-cyan);
+            padding: 10px 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .pot-row { display: flex; align-items: center; gap: 15px; }
+        .pot-label { color: var(--accent-cyan); font-weight: bold; font-size: 0.7em; min-width: 140px; text-transform: uppercase; }
+        .pot-list { display: flex; flex-wrap: wrap; gap: 5px; }
+
+        .pot-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.6em;
+            background: rgba(255,255,255,0.05);
+            padding: 2px 6px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .pot-item img { width: 14px; margin-right: 4px; }
+        .pot-item.drawn { opacity: 0.1; filter: grayscale(1); }
+
+        .controls { display: flex; flex-direction: column; align-items: center; margin-bottom: 5px; }
+        #status { font-size: 0.8em; color: var(--accent-cyan); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
+
+        button#drawBtn {
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            padding: 8px 30px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+        }
+        button#drawBtn:disabled { background: #1a2c30; color: #44585d; }
+    </style>
+</head>
+<body>
+
+    <div class="bracket-area">
+        <div class="bracket-outer" id="bracket-root">
+            <svg id="connector-canvas"></svg>
+
+            <div class="round round-r1"><div class="round-title">RD 1</div><div id="r1-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r16"><div class="round-title">RD 16</div><div id="r16-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">QF</div><div id="qf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">SF</div><div id="sf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+
+            <div class="round" style="justify-content: center; width: 200px;">
+                <div class="round-title" style="background:var(--accent-cyan); color:#000;">FINAL</div>
+                <div class="matchup" id="final-match">
+                    <div class="team empty" id="final-a" onclick="advanceTeam('final-a')">TBD</div>
+                    <div class="team empty" id="final-b" onclick="advanceTeam('final-b')">TBD</div>
+                </div>
+            </div>
+
+            <div class="round round-mini"><div class="round-title">SF</div><div id="sf-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-mini"><div class="round-title">QF</div><div id="qf-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r16"><div class="round-title">RD 16</div><div id="r16-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+            <div class="round round-r1"><div class="round-title">RD 1</div><div id="r1-R" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
+        </div>
+    </div>
+
+    <div class="bottom-panel">
+        <div class="controls">
+            <div id="status">INITIATING DRAW SEQUENCE</div>
+            <button id="drawBtn" onclick="drawNextTeam()">Draw Random Team</button>
+        </div>
+        <div id="row-seeds" class="pot-row"><div class="pot-label">R16 Auto-Qualifiers:</div><div id="pot-seeds" class="pot-list"></div></div>
+        <div id="row-pot1" class="pot-row"><div class="pot-label">Pot 1 (MLS):</div><div id="pot-1" class="pot-list"></div></div>
+        <div id="row-pot2" class="pot-row"><div class="pot-label">Pot 2 (Mixed):</div><div id="pot-2" class="pot-list"></div></div>
+    </div>
+
+<script>
+    const LOGOS = {
+        "Aston Villa": "https://resources.premierleague.com/premierleague25/badges-alt/7.svg",
+        "Leeds United": "https://resources.premierleague.com/premierleague25/badges-alt/2.svg",
+        "Elche": "https://ssl.gstatic.com/onebox/media/sports/logos/uyyqqxLIYT_lQIXRyMI_RA_48x48.png",
+        "Inter Miami": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747755405/assets/logos/mls-clubs/Club_Logo-Miami_tyqe64.png",
+        "Atlanta United": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747499879/assets/logos/mls-clubs/Club_Logo-Atlanta_jtk7ku.png",
+        "Seattle": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1748265125/assets/logos/mls-clubs/Club_Logo-Seattle_e6jk2x.png",
+        "Columbus": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747500414/assets/logos/mls-clubs/Club_Logo-Columbus_light_z3eq8l.png",
+        "San Diego": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1748261519/assets/logos/mls-clubs/Club_Logo-San_Diego_nwpyul.png",
+        "Colorado": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747500322/assets/logos/mls-clubs/Club_Logo-Colorado_n5kpss.png",
+        "Salt Lake": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747776403/assets/logos/mls-clubs/Club_Logo-Salt_Lake_City_hpvde5.png",
+        "Minnesota": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747754826/assets/logos/mls-clubs/Club_Logo-Minnesota_ftweor.png",
+        "San Jose": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1748262048/assets/logos/mls-clubs/Club_Logo-San_Jose_opzlmo.png",
+        "Charlotte": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747500045/assets/logos/mls-clubs/Club_Logo-Charlotte_p7sznf.png",
+        "LA Galaxy": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747755165/assets/logos/mls-clubs/Club_Logo-LA_Galaxy_fg0wjp.png",
+        "Orlando": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747769281/assets/logos/mls-clubs/Club_Logo-Orlando_ryyn7a.png",
+        "LAFC": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v174775309/assets/logos/mls-clubs/Club_Logo-LAFC_djrhru.png",
+        "New England": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1766020750/assets/NE_Logo_PRI_FC_RGB_480x480_fdx2us.png",
+        "Chicago": "https://images.mlssoccer.com/image/upload/t_club_logo_medium/v1747500178/assets/logos/mls-clubs/Club_Logo-Chicago_jm2yev.png",
+        "Brentford": "https://resources.premierleague.com/premierleague25/badges-alt/94.svg",
+        "Leicester": "https://upload.wikimedia.org/wikipedia/en/thumb/2/2d/Leicester_City_crest.svg/1200px-Leicester_City_crest.svg.png",
+        "Bournemouth": "https://resources.premierleague.com/premierleague25/badges-alt/91.svg",
+        "West Ham": "https://resources.premierleague.com/premierleague25/badges-alt/21.svg",
+        "Valencia": "https://ssl.gstatic.com/onebox/media/sports/logos/QPbjvDwI_0Wuu4tCS2O6uw_48x48.png",
+        "Real Betis": "https://ssl.gstatic.com/onebox/media/sports/logos/XDClkrMKtkm3UTP2YKN6oQ_48x48.png",
+        "Osasuna": "https://ssl.gstatic.com/onebox/media/sports/logos/pk-hNCNpGM_JDoHHvLVF-Q_48x48.png",
+        "Levante": "https://ssl.gstatic.com/onebox/media/sports/logos/SQB-jlVosxVV1Ce79FhbOA_48x48.png",
+        "Celta Vigo": "https://ssl.gstatic.com/onebox/media/sports/logos/wpdhixHP_sloegfP0UlwAw_48x48.png"
+    };
+
+    let seeds = ["Aston Villa", "Elche", "Inter Miami", "Atlanta United", "Leeds United"];
+    let pot1 = ["Seattle", "Columbus", "San Diego", "Colorado", "Salt Lake", "Minnesota", "San Jose", "Charlotte", "LA Galaxy", "Orlando", "LAFC"];
+    let pot2 = ["Brentford", "Leicester", "Bournemouth", "West Ham", "Valencia", "Real Betis", "Osasuna", "Levante", "Celta Vigo", "New England", "Chicago"];
+    
+    let seedSlots = ['r16-L-0-a', 'r16-L-2-a', 'r16-L-3-a', 'r16-R-0-a', 'r16-R-2-a'];
+    let mCount = 0;
+    let slotType = 'a';
+
+    // Map current slot to the next stage slot
+    const ADVANCEMENT_MAP = {
+        'r1-L-0': 'r16-L-0-b',
+        'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b',
+        'r1-L-3': 'r16-L-2-b',
+        'r1-L-4': 'r16-L-3-b',
+        'r1-R-0': 'r16-R-0-b',
+        'r1-R-1': 'r16-R-1-a', 'r1-R-2': 'r16-R-1-b',
+        'r1-R-3': 'r16-R-2-b',
+        'r1-R-4': 'r16-R-3-a', 'r1-R-5': 'r16-R-3-b',
+        'r16-L-0': 'qf-L-0-a', 'r16-L-1': 'qf-L-0-b',
+        'r16-L-2': 'qf-L-1-a', 'r16-L-3': 'qf-L-1-b',
+        'r16-R-0': 'qf-R-0-a', 'r16-R-1': 'qf-R-0-b',
+        'r16-R-2': 'qf-R-1-a', 'r16-R-3': 'qf-R-1-b',
+        'qf-L-0': 'sf-L-0-a', 'qf-L-1': 'sf-L-0-b',
+        'qf-R-0': 'sf-R-0-a', 'qf-R-1': 'sf-R-0-b',
+        'sf-L-0': 'final-a', 'sf-R-0': 'final-b'
+    };
+
+    function init() {
+        const build = (id, n) => {
+            const c = document.getElementById(id);
+            for(let i=0; i<n; i++) {
+                c.innerHTML += `
+                <div class="matchup" id="match-${id}-${i}">
+                    <div class="team empty" id="${id}-${i}-a" onclick="advanceTeam('${id}-${i}-a')">TBD</div>
+                    <div class="team empty" id="${id}-${i}-b" onclick="advanceTeam('${id}-${i}-b')">TBD</div>
+                </div>`;
+            }
+        };
+        build('r1-L', 5); build('r1-R', 6); build('r16-L', 4); build('r16-R', 4);
+        build('qf-L', 2); build('qf-R', 2); build('sf-L', 1); build('sf-R', 1);
+
+        const fillPot = (arr, id) => arr.forEach(t => document.getElementById(id).innerHTML += `<div class="pot-item" id="pot-${t.replace(/\s/g,'')}"><img src="${LOGOS[t] || ''}">${t}</div>`);
+        fillPot(seeds, 'pot-seeds'); fillPot(pot1, 'pot-1'); fillPot(pot2, 'pot-2');
+        setTimeout(drawLines, 500);
+    }
+
+    function togglePens(event, btn) {
+        event.stopPropagation();
+        btn.classList.toggle('active');
+        btn.innerText = btn.classList.contains('active') ? '(P)' : 'P';
+    }
+
+    function updateSlot(name, id, isSeed) {
+        const el = document.getElementById(id);
+        el.innerHTML = `
+            <img src="${LOGOS[name] || ''}"> 
+            <span>${name}</span>
+            <input type="number" class="score-input" min="0" value="0" onclick="event.stopPropagation()">
+            <button class="pens-btn" onclick="togglePens(event, this)">P</button>
+        `;
+        el.dataset.teamName = name;
+        el.classList.remove('empty');
+        if (isSeed) el.classList.add('pre-seeded');
+        
+        const potRef = document.getElementById(`pot-${name.replace(/\s/g,'')}`);
+        if(potRef) potRef.classList.add('drawn');
+    }
+
+    function advanceTeam(sourceId) {
+        const sourceEl = document.getElementById(sourceId);
+        if (sourceEl.classList.contains('empty')) return;
+
+        const teamName = sourceEl.dataset.teamName;
+        const matchKey = sourceId.split('-').slice(0, 3).join('-'); // e.g., r1-L-0
+        const targetId = ADVANCEMENT_MAP[matchKey];
+
+        if (targetId) {
+            updateSlot(teamName, targetId, false);
+            
+            // Visual highlight for winner
+            const siblings = sourceEl.parentElement.querySelectorAll('.team');
+            siblings.forEach(s => s.classList.remove('winner'));
+            sourceEl.classList.add('winner');
+        }
+    }
+
+    function drawNextTeam() {
+        if (seeds.length > 0) {
+            const idx = Math.floor(Math.random() * seeds.length);
+            const team = seeds.splice(idx, 1)[0];
+            updateSlot(team, seedSlots.shift(), true);
+            document.getElementById('status').innerText = `Drawn: ${team}`;
+            if (!seeds.length) document.getElementById('row-seeds').style.display = 'none';
+        } else if (pot1.length > 0 || pot2.length > 0) {
+            let team, slotID;
+            const side = (mCount < 5) ? 'L' : 'R';
+            const mIdx = (mCount < 5) ? mCount : mCount - 5;
+            
+            if (slotType === 'a') {
+                const rIdx = Math.floor(Math.random() * pot1.length);
+                team = pot1.splice(rIdx, 1)[0];
+                slotID = `r1-${side}-${mIdx}-a`;
+                slotType = 'b';
+            } else {
+                const rIdx = Math.floor(Math.random() * pot2.length);
+                team = pot2.splice(rIdx, 1)[0];
+                slotID = `r1-${side}-${mIdx}-b`;
+                slotType = 'a';
+                mCount++;
+            }
+            updateSlot(team, slotID, false);
+            if (!pot1.length && !pot2.length) {
+                document.getElementById('drawBtn').disabled = true;
+                document.getElementById('status').innerText = "Draw Complete - Click teams to advance!";
+            }
+        }
+    }
+
+    function drawLines() {
+        const svg = document.getElementById('connector-canvas');
+        svg.innerHTML = '';
+        const root = document.getElementById('bracket-root').getBoundingClientRect();
+        const connect = (id1, id2, dir) => {
+            const b1 = document.getElementById(id1).getBoundingClientRect();
+            const b2 = document.getElementById(id2).getBoundingClientRect();
+            const x1 = (dir === 'L') ? b1.right - root.left : b1.left - root.left;
+            const y1 = b1.top + b1.height/2 - root.top;
+            const x2 = (dir === 'L') ? b2.left - root.left : b2.right - root.left;
+            const y2 = b2.top + b2.height/2 - root.top;
+            const midX = x1 + (x2 - x1)/2;
+            svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5" />`;
+        };
+
+        // CONNECTIONS (Matches existing bracket structure)
+        connect('match-r1-L-0', 'r16-L-0-b', 'L');
+        connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
+        connect('match-r1-L-3', 'r16-L-2-b', 'L');
+        connect('match-r1-L-4', 'r16-L-3-b', 'L');
+
+        connect('match-r1-R-0', 'r16-R-0-b', 'R');
+        connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
+        connect('match-r1-R-3', 'r16-R-2-b', 'R');
+        connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
+
+        connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
+        connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
+        connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
+        connect('match-sf-L-0', 'final-match', 'L');
+
+        connect('match-r16-R-0', 'match-qf-R-0', 'R'); connect('match-r16-R-1', 'match-qf-R-0', 'R');
+        connect('match-r16-R-2', 'match-qf-R-1', 'R'); connect('match-r16-R-3', 'match-qf-R-1', 'R');
+        connect('match-qf-R-0', 'match-sf-R-0', 'R'); connect('match-qf-R-1', 'match-sf-R-0', 'R');
+        connect('match-sf-R-0', 'final-match', 'R');
+    }
+
+    init();
+    window.onresize = drawLines;
+</script>
+</body>
+</html>
