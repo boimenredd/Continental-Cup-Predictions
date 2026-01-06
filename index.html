@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ACSF Predictor 2026</title>
+    <title>ACSF Predictor 2026 - Fixed Layout</title>
     <style>
         :root {
             --bg-color: #00151a;
@@ -19,74 +19,68 @@
             color: var(--text-white);
             font-family: 'Segoe UI', sans-serif;
             margin: 0;
-            overflow: hidden;
             display: flex;
             justify-content: center;
+            overflow-x: auto;
         }
 
-        .bracket-area {
+        .bracket-container {
             position: relative;
-            padding: 40px;
             display: flex;
             align-items: center;
-            min-width: 1600px;
-            height: 900px;
+            padding: 60px;
+            min-height: 900px;
         }
 
-        .bracket-outer {
-            position: relative;
+        .bracket-side {
             display: flex;
-            justify-content: center;
-            gap: 40px;
-            width: 100%;
+            gap: 50px;
         }
 
         .round {
             display: flex;
             flex-direction: column;
             justify-content: space-around;
+            width: 200px;
             z-index: 2;
         }
-
-        .round-r1, .round-r16 { width: 220px; }
-        .round-mini { width: 180px; }
 
         .round-title {
             text-align: center;
             font-size: 0.7em;
             color: var(--accent-cyan);
-            padding: 4px;
+            padding: 5px;
             border: 1px solid var(--accent-cyan);
             background: #000;
             letter-spacing: 2px;
             text-transform: uppercase;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
         }
 
         .matchup {
             background: var(--card-bg);
             border: 1px solid rgba(0, 242, 255, 0.2);
             border-radius: 2px;
-            margin: 10px 0;
-            width: 100%;
+            margin: 15px 0;
+            position: relative;
         }
 
         .team {
             display: flex;
             align-items: center;
-            height: 35px;
+            height: 38px;
             padding: 0 10px;
-            font-size: 0.85em;
+            font-size: 0.8em;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             transition: background 0.2s;
+            position: relative;
         }
 
         .team:hover { background: rgba(0, 242, 255, 0.1); }
         .team:last-child { border-bottom: none; }
-        
-        .team img { width: 20px; height: 20px; margin-right: 10px; object-fit: contain; }
-        .team span { flex-grow: 1; }
+        .team img { width: 22px; height: 22px; margin-right: 10px; object-fit: contain; }
+        .team span { flex-grow: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
         .score-box {
             display: flex;
@@ -102,10 +96,11 @@
             text-align: center;
             font-weight: bold;
             padding: 2px 0;
+            font-size: 0.8em;
         }
 
         .pens-toggle {
-            font-size: 0.65em;
+            font-size: 0.6em;
             background: #1a2c30;
             border: 1px solid #44585d;
             color: #44585d;
@@ -119,12 +114,18 @@
             border-color: var(--win-gold);
         }
 
-        .team.winner {
-            color: var(--win-gold);
-            font-weight: bold;
-        }
-
+        .team.winner { color: var(--win-gold); font-weight: bold; }
         .team.empty { color: #44585d; font-style: italic; }
+
+        .final-center {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 240px;
+            margin: 0 60px;
+            z-index: 2;
+        }
 
         #connector-canvas {
             position: absolute;
@@ -136,51 +137,29 @@
 </head>
 <body>
 
-    <div class="bracket-area">
-        <div class="bracket-outer" id="bracket-root">
-            <svg id="connector-canvas"></svg>
+    <div class="bracket-container" id="bracket-root">
+        <svg id="connector-canvas"></svg>
 
-            <div class="round round-r1">
-                <div class="round-title">RD 1</div>
-                <div id="r1-L"></div>
-            </div>
-            <div class="round round-r16">
-                <div class="round-title">RD 16</div>
-                <div id="r16-L"></div>
-            </div>
-            <div class="round round-mini">
-                <div class="round-title">QF</div>
-                <div id="qf-L"></div>
-            </div>
-            <div class="round round-mini">
-                <div class="round-title">SF</div>
-                <div id="sf-L"></div>
-            </div>
+        <div class="bracket-side">
+            <div class="round"><div class="round-title">RD 1</div><div id="r1-L"></div></div>
+            <div class="round"><div class="round-title">RD 16</div><div id="r16-L"></div></div>
+            <div class="round"><div class="round-title">QF</div><div id="qf-L"></div></div>
+            <div class="round"><div class="round-title">SF</div><div id="sf-L"></div></div>
+        </div>
 
-            <div class="round" style="justify-content: center; width: 220px;">
-                <div class="round-title" style="background:var(--accent-cyan); color:#000;">FINAL</div>
-                <div class="matchup" id="match-final">
-                    <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
-                    <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
-                </div>
+        <div class="final-center">
+            <div class="round-title" style="background:var(--accent-cyan); color:#000; width:100%;">GRAND FINAL</div>
+            <div class="matchup" id="match-final" style="width:100%;">
+                <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><span>TBD</span></div>
+                <div class="team empty" id="final-b" onclick="manualAdvance('final-b')"><span>TBD</span></div>
             </div>
+        </div>
 
-            <div class="round round-mini">
-                <div class="round-title">SF</div>
-                <div id="sf-R"></div>
-            </div>
-            <div class="round round-mini">
-                <div class="round-title">QF</div>
-                <div id="qf-R"></div>
-            </div>
-            <div class="round round-r16">
-                <div class="round-title">RD 16</div>
-                <div id="r16-R"></div>
-            </div>
-            <div class="round round-r1">
-                <div class="round-title">RD 1</div>
-                <div id="r1-R"></div>
-            </div>
+        <div class="bracket-side">
+            <div class="round"><div class="round-title">SF</div><div id="sf-R"></div></div>
+            <div class="round"><div class="round-title">QF</div><div id="qf-R"></div></div>
+            <div class="round"><div class="round-title">RD 16</div><div id="r16-R"></div></div>
+            <div class="round"><div class="round-title">RD 1</div><div id="r1-R"></div></div>
         </div>
     </div>
 
@@ -215,14 +194,16 @@
         "Celta Vigo": "https://ssl.gstatic.com/onebox/media/sports/logos/wpdhixHP_sloegfP0UlwAw_48x48.png"
     };
 
-    const INITIAL_MATCHUPS = {
+    const INITIAL_DATA = {
         'r1-L': [["San Diego", "Celta Vigo"], ["Seattle", "Valencia"], ["LAFC", "Leicester"], ["Salt Lake", "West Ham"], ["Minnesota", "Real Betis"]],
         'r1-R': [["LA Galaxy", "Bournemouth"], ["Columbus", "Levante"], ["Colorado", "Brentford"], ["Orlando", "New England"], ["Charlotte", "Osasuna"], ["San Jose", "Chicago"]],
         'r16-L': [["Leeds United", null], [null, null], [null, "Atlanta United"], [null, "Aston Villa"]],
-        'r16-R': [["Inter Miami", null], [null, null], ["Elche", null], [null, null]]
+        'r16-R': [["Inter Miami", null], [null, null], ["Elche", null], [null, null]],
+        'qf-L': [[null,null],[null,null]], 'qf-R': [[null,null],[null,null]],
+        'sf-L': [[null,null]], 'sf-R': [[null,null]]
     };
 
-    const ADVANCEMENT_MAP = {
+    const PATHS = {
         'r1-L-0': 'r16-L-0-b', 'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b', 'r1-L-3': 'r16-L-2-b', 'r1-L-4': 'r16-L-3-b',
         'r1-R-0': 'r16-R-0-b', 'r1-R-1': 'r16-R-1-a', 'r1-R-2': 'r16-R-1-b', 'r1-R-3': 'r16-R-2-b', 'r1-R-4': 'r16-R-3-a', 'r1-R-5': 'r16-R-3-b',
         'r16-L-0': 'qf-L-0-a', 'r16-L-1': 'qf-L-0-b', 'r16-L-2': 'qf-L-1-a', 'r16-L-3': 'qf-L-1-b',
@@ -232,40 +213,26 @@
     };
 
     function init() {
-        const buildSection = (id, count) => {
-            const container = document.getElementById(id);
-            const data = INITIAL_MATCHUPS[id] || [];
-            for (let i = 0; i < count; i++) {
-                const teamA = data[i] ? data[i][0] : null;
-                const teamB = data[i] ? data[i][1] : null;
-                container.innerHTML += createMatchHTML(id, i, teamA, teamB);
-            }
-        };
-
-        buildSection('r1-L', 5); buildSection('r1-R', 6);
-        buildSection('r16-L', 4); buildSection('r16-R', 4);
-        buildSection('qf-L', 2); buildSection('qf-R', 2);
-        buildSection('sf-L', 1); buildSection('sf-R', 1);
-
-        setTimeout(drawLines, 200);
-    }
-
-    function createMatchHTML(round, idx, teamA, teamB) {
-        return `
-            <div class="matchup" id="match-${round}-${idx}">
-                ${createTeamHTML(`${round}-${idx}-a`, teamA)}
-                ${createTeamHTML(`${round}-${idx}-b`, teamB)}
-            </div>`;
+        Object.keys(INITIAL_DATA).forEach(roundId => {
+            const container = document.getElementById(roundId);
+            INITIAL_DATA[roundId].forEach((m, i) => {
+                container.innerHTML += `
+                <div class="matchup" id="match-${roundId}-${i}">
+                    ${createTeamHTML(`${roundId}-${i}-a`, m[0])}
+                    ${createTeamHTML(`${roundId}-${i}-b`, m[1])}
+                </div>`;
+            });
+        });
+        setTimeout(drawLines, 500);
     }
 
     function createTeamHTML(id, name) {
-        const isEmpty = !name;
         return `
-            <div class="team ${isEmpty ? 'empty' : ''}" id="${id}" onclick="manualAdvance('${id}')">
-                <img src="${name ? LOGOS[name] : ''}" style="display: ${name ? 'block' : 'none'}">
+            <div class="team ${!name ? 'empty' : ''}" id="${id}" onclick="manualAdvance('${id}')">
+                <img src="${name ? LOGOS[name] : ''}" style="display:${name ? 'block' : 'none'}">
                 <span>${name || 'TBD'}</span>
                 <div class="score-box" onclick="event.stopPropagation()">
-                    <input type="number" class="score-input" value="0" onchange="checkWinner('${id}')">
+                    <input type="number" class="score-input" value="0" onchange="autoCheck('${id}')">
                     <button class="pens-toggle" onclick="togglePens(this, '${id}')">P</button>
                 </div>
             </div>`;
@@ -274,89 +241,63 @@
     function togglePens(btn, id) {
         btn.classList.toggle('active');
         btn.innerText = btn.classList.contains('active') ? '(P)' : 'P';
-        checkWinner(id);
+        autoCheck(id);
     }
 
-    function checkWinner(id) {
-        const matchId = id.substring(0, id.lastIndexOf('-'));
-        const teamA = document.getElementById(matchId + '-a');
-        const teamB = document.getElementById(matchId + '-b');
-        
-        const scoreA = parseInt(teamA.querySelector('.score-input').value) || 0;
-        const scoreB = parseInt(teamB.querySelector('.score-input').value) || 0;
-        const pensA = teamA.querySelector('.pens-toggle').classList.contains('active');
-        const pensB = teamB.querySelector('.pens-toggle').classList.contains('active');
+    function autoCheck(id) {
+        const mId = id.substring(0, id.lastIndexOf('-'));
+        const teamA = document.getElementById(mId + '-a');
+        const teamB = document.getElementById(mId + '-b');
+        const sA = parseInt(teamA.querySelector('.score-input').value) || 0;
+        const sB = parseInt(teamB.querySelector('.score-input').value) || 0;
+        const pA = teamA.querySelector('.pens-toggle').classList.contains('active');
+        const pB = teamB.querySelector('.pens-toggle').classList.contains('active');
 
-        if (scoreA > scoreB || (scoreA === scoreB && pensA)) {
-            advance(teamA, matchId);
-        } else if (scoreB > scoreA || (scoreB === scoreA && pensB)) {
-            advance(teamB, matchId);
-        }
+        if (sA > sB || (sA === sB && pA)) advance(teamA, mId);
+        else if (sB > sA || (sB === sA && pB)) advance(teamB, mId);
     }
 
     function manualAdvance(id) {
         const el = document.getElementById(id);
         if (el.classList.contains('empty')) return;
-        const matchId = id.substring(0, id.lastIndexOf('-'));
-        advance(el, matchId);
+        advance(el, id.substring(0, id.lastIndexOf('-')));
     }
 
     function advance(winnerEl, matchId) {
-        const targetId = ADVANCEMENT_MAP[matchId];
+        const targetId = PATHS[matchId.replace('match-','')];
         if (!targetId) return;
-
-        const teamName = winnerEl.querySelector('span').innerText;
-        const targetEl = document.getElementById(targetId);
-        
-        // Highlight logic
-        const parent = winnerEl.parentElement;
-        parent.querySelectorAll('.team').forEach(t => t.classList.remove('winner'));
+        const name = winnerEl.querySelector('span').innerText;
+        const target = document.getElementById(targetId);
+        winnerEl.parentElement.querySelectorAll('.team').forEach(t => t.classList.remove('winner'));
         winnerEl.classList.add('winner');
-
-        // Update Next Slot
-        targetEl.classList.remove('empty');
-        targetEl.querySelector('img').src = LOGOS[teamName];
-        targetEl.querySelector('img').style.display = 'block';
-        targetEl.querySelector('span').innerText = teamName;
+        target.classList.remove('empty');
+        target.querySelector('img').src = LOGOS[name];
+        target.querySelector('img').style.display = 'block';
+        target.querySelector('span').innerText = name;
     }
 
     function drawLines() {
         const svg = document.getElementById('connector-canvas');
         svg.innerHTML = '';
         const root = document.getElementById('bracket-root').getBoundingClientRect();
-        
-        const connect = (match1Id, targetId, dir) => {
-            const m1 = document.getElementById(match1Id).getBoundingClientRect();
-            const target = document.getElementById(targetId).getBoundingClientRect();
-            
-            const x1 = (dir === 'L') ? m1.right - root.left : m1.left - root.left;
-            const y1 = m1.top + m1.height/2 - root.top;
-            const x2 = (dir === 'L') ? target.left - root.left : target.right - root.right + target.width;
-            const y2 = target.top + target.height/2 - root.top;
-            
-            const midX = x1 + (x2 - x1)/2;
-            svg.innerHTML += `<path d="M ${x1} ${y1} H ${midX} V ${y2} H ${x2}" stroke="var(--line-color)" fill="none" stroke-width="1.5" />`;
+
+        const getPos = (id, side) => {
+            const el = document.getElementById(id).getBoundingClientRect();
+            return {
+                x: (side === 'L' ? el.right : el.left) - root.left,
+                y: el.top + el.height/2 - root.top
+            };
         };
 
-        // Standard Connections
-        connect('match-r1-L-0', 'r16-L-0-b', 'L');
-        connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
-        connect('match-r1-L-3', 'r16-L-2-b', 'L'); connect('match-r1-L-4', 'r16-L-3-b', 'L');
-
-        connect('match-r1-R-0', 'r16-R-0-b', 'R');
-        connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
-        connect('match-r1-R-3', 'r16-R-2-b', 'R');
-        connect('match-r1-R-4', 'match-r16-R-3', 'R'); connect('match-r1-R-5', 'match-r16-R-3', 'R');
-
-        connect('match-r16-L-0', 'match-qf-L-0', 'L'); connect('match-r16-L-1', 'match-qf-L-0', 'L');
-        connect('match-r16-L-2', 'match-qf-L-1', 'L'); connect('match-r16-L-3', 'match-qf-L-1', 'L');
-        connect('match-qf-L-0', 'match-sf-L-0', 'L'); connect('match-qf-L-1', 'match-sf-L-0', 'L');
-        connect('match-sf-L-0', 'match-final', 'L');
-
-        connect('match-r16-R-0', 'match-qf-R-0', 'R'); connect('match-r16-R-1', 'match-qf-R-0', 'R');
-        connect('match-r16-R-2', 'match-qf-R-1', 'R'); connect('match-r16-R-3', 'match-qf-R-1', 'R');
-        connect('match-qf-R-0', 'match-sf-R-0', 'R'); connect('match-qf-R-1', 'match-sf-R-0', 'R');
-        connect('match-sf-R-0', 'match-final', 'R');
+        Object.keys(PATHS).forEach(mKey => {
+            const side = mKey.includes('-L-') || mKey.includes('sf-L') ? 'L' : 'R';
+            const start = getPos('match-' + mKey, side);
+            const targetId = PATHS[mKey];
+            const end = getPos(targetId, side === 'L' ? 'R' : 'L');
+            
+            const midX = start.x + (end.x - start.x) / 2;
+            svg.innerHTML += `<path d="M ${start.x} ${start.y} H ${midX} V ${end.y} H ${end.x}" stroke="var(--line-color)" fill="none" stroke-width="2"/>`;
+        });
     }
 
     init();
