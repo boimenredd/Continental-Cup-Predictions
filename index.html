@@ -31,15 +31,16 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            background: rgba(0, 0, 0, 0.4);
-            border-bottom: 1px solid var(--line-color);
+            background: rgba(0, 0, 0, 0.6);
+            border-bottom: 2px solid var(--win-gold);
             visibility: hidden;
+            opacity: 0;
             transition: all 0.5s ease;
         }
         #champion-header.visible { visibility: visible; opacity: 1; }
-        .champ-label { font-size: 0.6em; color: var(--win-gold); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 5px; }
-        .champ-content { display: flex; align-items: center; gap: 15px; font-size: 1.5em; font-weight: bold; text-shadow: 0 0 10px var(--win-gold); }
-        .champ-content img { height: 40px; }
+        .champ-label { font-size: 0.65em; color: var(--win-gold); letter-spacing: 4px; text-transform: uppercase; margin-bottom: 5px; }
+        .champ-content { display: flex; align-items: center; gap: 15px; font-size: 1.6em; font-weight: bold; text-shadow: 0 0 15px var(--win-gold); }
+        .champ-content img { height: 45px; }
 
         .bracket-area {
             flex: 1;
@@ -67,8 +68,8 @@
             z-index: 2;
         }
 
-        .round-r1, .round-r16 { width: 170px; }
-        .round-mini { width: 120px; }
+        .round-r1, .round-r16 { width: 175px; }
+        .round-mini { width: 125px; }
 
         .round-title {
             text-align: center;
@@ -90,31 +91,32 @@
         .team {
             display: flex;
             align-items: center;
-            height: 28px;
+            height: 30px;
             padding: 0 8px;
-            font-size: 0.7em;
+            font-size: 0.75em;
             border-bottom: 1px solid rgba(255,255,255,0.05);
             cursor: pointer;
             transition: background 0.2s;
         }
-        .team:hover { background: rgba(0, 242, 255, 0.1); }
+        .team:hover { background: rgba(0, 242, 255, 0.15); }
         .team:last-child { border-bottom: none; }
         
-        .team img { width: 16px; height: 16px; margin-right: 6px; object-fit: contain; }
+        .team img { width: 18px; height: 18px; margin-right: 8px; object-fit: contain; }
         .team span { flex-grow: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         .score-box { display: flex; align-items: center; margin-left: 5px; }
         .score-input {
-            width: 24px;
+            width: 26px;
             background: #000;
             border: 1px solid var(--line-color);
             color: var(--accent-cyan);
             text-align: center;
-            font-size: 0.8em;
+            font-size: 0.85em;
             padding: 1px 0;
+            font-weight: bold;
         }
         
-        .team.empty { color: #44585d; font-style: italic; }
+        .team.empty { color: #556b72; font-style: italic; }
 
         #connector-canvas {
             position: absolute;
@@ -143,7 +145,7 @@
             <div class="round round-mini"><div class="round-title">QF</div><div id="qf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
             <div class="round round-mini"><div class="round-title">SF</div><div id="sf-L" style="height:100%; display:flex; flex-direction:column; justify-content:space-around;"></div></div>
 
-            <div class="round" style="justify-content: center; width: 140px;">
+            <div class="round" style="justify-content: center; width: 150px;">
                 <div class="round-title" style="background:var(--accent-cyan); color:#000;">FINAL</div>
                 <div class="matchup" id="match-final">
                     <div class="team empty" id="final-a" onclick="manualAdvance('final-a')"><img src="" style="display:none"><span>TBD</span></div>
@@ -190,7 +192,7 @@
     };
 
     const BRACKET_MAP = {
-        'r1-L-0': 'r16-L-0-b', 'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b', 'r1-L-3': 'r16-L-2-b', 'r1-L-4': 'r16-L-3-b',
+        'r1-L-0': 'r16-L-0-b', 'r1-L-1': 'r16-L-1-a', 'r1-L-2': 'r16-L-1-b', 'r1-L-3': 'r16-L-2-b', 'r1-L-4': 'r16-L-3-a',
         'r1-R-0': 'r16-R-0-b', 'r1-R-1': 'r16-R-1-a', 'r1-R-2': 'r16-R-1-b', 'r1-R-3': 'r16-R-2-b', 'r1-R-4': 'r16-R-3-a', 'r1-R-5': 'r16-R-3-b',
         'r16-L-0': 'qf-L-0-a', 'r16-L-1': 'qf-L-0-b', 'r16-L-2': 'qf-L-1-a', 'r16-L-3': 'qf-L-1-b',
         'r16-R-0': 'qf-R-0-a', 'r16-R-1': 'qf-R-0-b', 'r16-R-2': 'qf-R-1-a', 'r16-R-3': 'qf-R-1-b',
@@ -252,8 +254,9 @@
 
     function advance(winnerEl, matchId) {
         const name = winnerEl.querySelector('span').innerText;
+        if (name === 'TBD') return;
 
-        // If it's the final, update the header
+        // Ultimate Final Champion Selection
         if (matchId === 'final' || matchId === 'match-final') {
             const header = document.getElementById('champion-header');
             document.getElementById('champ-logo').src = LOGOS[name];
@@ -267,11 +270,11 @@
 
         const target = document.getElementById(targetId);
         
-        // Prevent overwriting static seeded teams in Round 16
+        // Safety for Round 16 pre-filled slots
         const autoQuals = ["Leeds United", "Inter Miami", "Atlanta United", "Elche", "Aston Villa"];
-        if (autoQuals.includes(target.querySelector('span').innerText) && targetId.includes('r16')) return;
+        if (targetId.includes('r16') && autoQuals.includes(target.querySelector('span').innerText)) return;
 
-        // Update target slot
+        // Populate Next Round
         target.classList.remove('empty');
         target.querySelector('img').src = LOGOS[name];
         target.querySelector('img').style.display = 'inline';
@@ -285,6 +288,7 @@
         const connect = (id1, id2, dir) => {
             const b1 = document.getElementById(id1).getBoundingClientRect();
             const b2 = document.getElementById(id2).getBoundingClientRect();
+            if (!b1 || !b2) return;
             const x1 = (dir === 'L') ? b1.right - root.left : b1.left - root.left;
             const y1 = b1.top + b1.height/2 - root.top;
             const x2 = (dir === 'L') ? b2.left - root.left : b2.right - root.left;
@@ -296,7 +300,7 @@
         connect('match-r1-L-0', 'r16-L-0-b', 'L');
         connect('match-r1-L-1', 'match-r16-L-1', 'L'); connect('match-r1-L-2', 'match-r16-L-1', 'L');
         connect('match-r1-L-3', 'r16-L-2-b', 'L');
-        connect('match-r1-L-4', 'r16-L-3-b', 'L');
+        connect('match-r1-L-4', 'r16-L-3-a', 'L');
 
         connect('match-r1-R-0', 'r16-R-0-b', 'R');
         connect('match-r1-R-1', 'match-r16-R-1', 'R'); connect('match-r1-R-2', 'match-r16-R-1', 'R');
